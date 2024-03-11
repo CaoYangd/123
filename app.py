@@ -1,17 +1,6 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
--------------------------------------------------
-   @File Name:     app.py
-   @Author:        Luyao.zhang
-   @Date:          2023/5/15
-   @Description:
--------------------------------------------------
-"""
+##
 from pathlib import Path
-from PIL import Image
 import streamlit as st
-
 import config
 from utils import load_model, infer_uploaded_image, infer_uploaded_video, infer_uploaded_webcam
 
@@ -22,50 +11,63 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
     )
-
-# main page heading
-st.title("Interactive Interface for YOLOv8")
-
-# sidebar
-st.sidebar.header("DL Model Config")
-
-# model options
+## 设置一个主页标题
+st.title("用YOLOv8实现人脸检测")
+## 在侧边栏（sidebar）部分添加一个标题（header）
+st.sidebar.header("aaa")
+## 选择模型
 task_type = st.sidebar.selectbox(
-    "Select Task",
-    ["Detection"]
+    "选择任务",
+    ["目标检测","目标分割"]
 )
-
+## ---------------------------------- ##
+## 任务条件判断
 model_type = None
-if task_type == "Detection":
+if task_type == "目标检测":
     model_type = st.sidebar.selectbox(
-        "Select Model",
-        config.DETECTION_MODEL_LIST
+    "请选择模型",
+    config.DETECTION_MODEL_LIST
     )
+
+elif task_type == "目标分割":
+    model_type = st.sidebar.selectbox(
+    "请选择模型",
+    config.SEGMENTION_MODEL_LIST
+    )
+# 其他任务类别
+# elif task_type == "XXX":
+#     model_type = st.sidebar.selectbox(
+#     "请选择模型",
+#     config.XXX
+#     )
 else:
-    st.error("Currently only 'Detection' function is implemented")
-
-confidence = float(st.sidebar.slider(
-    "Select Model Confidence", 30, 100, 50)) / 100
-
+    st.error("这里只有检测和分割功能哦")
+## ---------------------------------- ##
+## 创建一个置信度的滑动条
+confidence = st.sidebar.slider(
+    "请选择一个置信度",
+    30,
+    100,
+    50
+)
+confidence = float(confidence)/100
 model_path = ""
 if model_type:
     model_path = Path(config.DETECTION_MODEL_DIR, str(model_type))
 else:
     st.error("Please Select Model in Sidebar")
-
-# load pretrained DL model
+## 上传一个模型
 try:
     model = load_model(model_path)
 except Exception as e:
     st.error(f"Unable to load model. Please check the specified path: {model_path}")
-
-# image/video options
-st.sidebar.header("Image/Video Config")
+## 上传被检测图片、视频模块
+st.sidebar.header("打开图片或视频")
 source_selectbox = st.sidebar.selectbox(
-    "Select Source",
+    "选择文件类型",
     config.SOURCES_LIST
 )
-
+##
 source_img = None
 if source_selectbox == config.SOURCES_LIST[0]: # Image
     infer_uploaded_image(confidence, model)
